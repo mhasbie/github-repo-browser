@@ -9,6 +9,7 @@ class Home extends React.Component {
 		super(props);
 		
 		this.search = this.search.bind(this);
+		this.gotoPage = this.gotoPage.bind(this);
 		this.updateLanguage = this.updateLanguage.bind(this);
 		this.updateTopic = this.updateTopic.bind(this);
 		
@@ -20,15 +21,26 @@ class Home extends React.Component {
 		};
 	}
 	
-	async search(e) {
+	async search(e, pageUrl = '') {
 		e.preventDefault();
 		
-		let result = await searchRepo(this.state.language, this.state.topic);
+		if (this.state.topic == '') {
+			alert('Please enter search keyword for `Topic`.');
+		}
+		
+		let result = await searchRepo(this.state.language, this.state.topic, pageUrl);
 		let items = (result && result.data && result.data.items) ? result.data.items : [];
 		
 		this.setState({ searchResult: result, resultItems: items });
+	}
+	
+	gotoPage(e) {
+		e.preventDefault();
 		
-		//console.log('result', result);
+		let searchResult = this.state.searchResult;
+		let pageUrl = searchResult.pagination[e.target.id];
+		
+		this.search(e, pageUrl);
 	}
 	
 	updateLanguage(e) {
@@ -57,12 +69,11 @@ class Home extends React.Component {
 			);
 		}
 		
+		let firstButton = searchResult.pagination['first'] ? '' : ''
+		
 		let resultCards = resultItems.map((item) => {
 			return (
-				<a
-					href={item.url}
-					className="card"
-				>
+				<a key={item.id} href={item.html_url} className="card">
 					<h3>{item.name}</h3>
 					<p>
 						{item.description}
@@ -72,140 +83,33 @@ class Home extends React.Component {
 		});
 		
 		return (
-			
-			<div className="grid">
-				{ resultCards }
-				<style jsx>{`
-					.container {
-						min-height: 100vh;
-						padding: 0 0.5rem;
-						display: flex;
-						flex-direction: column;
-						justify-content: center;
-						align-items: center;
-					}
-
-					main {
-						padding: 5rem 0;
-						flex: 1;
-						display: flex;
-						flex-direction: column;
-						justify-content: center;
-						align-items: center;
-					}
-
-					footer {
-						width: 100%;
-						height: 100px;
-						border-top: 1px solid #eaeaea;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}
-
-					footer img {
-						margin-left: 0.5rem;
-					}
-
-					footer a {
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}
-
-					a {
-						color: inherit;
-						text-decoration: none;
-					}
-
-					.title a {
-						color: #0070f3;
-						text-decoration: none;
-					}
-
-					.title a:hover,
-					.title a:focus,
-					.title a:active {
-						text-decoration: underline;
-					}
-
-					.title {
-						margin: 0;
-						line-height: 1.15;
-						font-size: 4rem;
-					}
-
-					.title,
-					.description {
-						text-align: center;
-					}
-
-					.description {
-						line-height: 1.5;
-						font-size: 1.5rem;
-					}
-
-					code {
-						background: #fafafa;
-						border-radius: 5px;
-						padding: 0.75rem;
-						font-size: 1.1rem;
-						font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-						DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-					}
-
-					.grid {
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						flex-wrap: wrap;
-
-						max-width: 800px;
-						margin-top: 3rem;
-					}
-
-					.card {
-						margin: 1rem;
-						flex-basis: 45%;
-						padding: 1.5rem;
-						text-align: left;
-						color: inherit;
-						text-decoration: none;
-						border: 1px solid #eaeaea;
-						border-radius: 10px;
-						transition: color 0.15s ease, border-color 0.15s ease;
-					}
-
-					.card:hover,
-					.card:focus,
-					.card:active {
-						color: #0070f3;
-						border-color: #0070f3;
-					}
-
-					.card h3 {
-						margin: 0 0 1rem 0;
-						font-size: 1.5rem;
-					}
-
-					.card p {
-						margin: 0;
-						font-size: 1.25rem;
-						line-height: 1.5;
-					}
-
-					.logo {
-						height: 1em;
-					}
-
-					@media (max-width: 600px) {
-						.grid {
-							width: 100%;
-							flex-direction: column;
-						}
-					}
-				`}</style>
+			<div>
+				<div className="grid">
+					{ this.renderPagination() }
+				</div>
+				<div className="grid">
+					
+					{ resultCards }
+				</div>
 			</div>
+		);
+	}
+	
+	renderPagination() {
+		let searchResult = this.state.searchResult;
+		
+		let firstButton = searchResult.pagination['first'] ? <input type="button" id="first" value="First" onClick={this.gotoPage} /> : '';
+		let previousButton = searchResult.pagination['prev'] ? <input type="button" id="prev" value="Previous" onClick={this.gotoPage} /> : '';
+		let nextButton = searchResult.pagination['next'] ? <input type="button" id="next" value="Next" onClick={this.gotoPage} /> : '';
+		let lastButton = searchResult.pagination['last'] ? <input type="button" id="last" value="Last" onClick={this.gotoPage} /> : '';
+		
+		return (
+			<span>
+				{ firstButton }
+				{ previousButton }
+				{ nextButton }
+				{ lastButton }
+			</span>
 		);
 	}
 	
@@ -217,7 +121,7 @@ class Home extends React.Component {
 					<link rel="icon" href="/favicon.ico" />
 				</Head>
 
-				<main>
+				<div className="main">
 					<h1 className="title">
 						Search Github Repo
 					</h1>
@@ -239,9 +143,9 @@ class Home extends React.Component {
 					</div>
 					
 					{ this.renderSearchResult() }
-				</main>
+				</div>
 
-				<footer>
+				<div className="footer">
 					<a
 						href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
 						target="_blank"
@@ -250,153 +154,7 @@ class Home extends React.Component {
 						Powered by{' '}
 						<img src="/vercel.svg" alt="Vercel Logo" className="logo" />
 					</a>
-				</footer>
-
-				<style jsx>{`
-					.container {
-						min-height: 100vh;
-						padding: 0 0.5rem;
-						display: flex;
-						flex-direction: column;
-						justify-content: center;
-						align-items: center;
-					}
-
-					main {
-						padding: 5rem 0;
-						flex: 1;
-						display: flex;
-						flex-direction: column;
-						justify-content: center;
-						align-items: center;
-					}
-
-					footer {
-						width: 100%;
-						height: 100px;
-						border-top: 1px solid #eaeaea;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}
-
-					footer img {
-						margin-left: 0.5rem;
-					}
-
-					footer a {
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}
-
-					a {
-						color: inherit;
-						text-decoration: none;
-					}
-
-					.title a {
-						color: #0070f3;
-						text-decoration: none;
-					}
-
-					.title a:hover,
-					.title a:focus,
-					.title a:active {
-						text-decoration: underline;
-					}
-
-					.title {
-						margin: 0;
-						line-height: 1.15;
-						font-size: 4rem;
-					}
-
-					.title,
-					.description {
-						text-align: center;
-					}
-
-					.description {
-						line-height: 1.5;
-						font-size: 1.5rem;
-					}
-
-					code {
-						background: #fafafa;
-						border-radius: 5px;
-						padding: 0.75rem;
-						font-size: 1.1rem;
-						font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-						DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-					}
-
-					.grid {
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						flex-wrap: wrap;
-
-						max-width: 800px;
-						margin-top: 3rem;
-					}
-
-					.card {
-						margin: 1rem;
-						flex-basis: 45%;
-						padding: 1.5rem;
-						text-align: left;
-						color: inherit;
-						text-decoration: none;
-						border: 1px solid #eaeaea;
-						border-radius: 10px;
-						transition: color 0.15s ease, border-color 0.15s ease;
-					}
-
-					.card:hover,
-					.card:focus,
-					.card:active {
-						color: #0070f3;
-						border-color: #0070f3;
-					}
-
-					.card h3 {
-						margin: 0 0 1rem 0;
-						font-size: 1.5rem;
-					}
-
-					.card p {
-						margin: 0;
-						font-size: 1.25rem;
-						line-height: 1.5;
-					}
-
-					.logo {
-						height: 1em;
-					}
-
-					@media (max-width: 600px) {
-						.grid {
-							width: 100%;
-							flex-direction: column;
-						}
-					}
-				`}</style>
-
-				<style jsx global>{`
-					html,
-					body {
-						padding: 0;
-						margin: 0;
-						font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-						Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-						sans-serif;
-					}
-
-					* {
-						box-sizing: border-box;
-					}
-				`}</style>
+				</div>
 			</div>
 		)
 	}
