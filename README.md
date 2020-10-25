@@ -1,6 +1,6 @@
-#Github Repository Browser
+# Github Repository Browser
 ---
 
-##Author
+## Author
 ---
 M. Hasbie
