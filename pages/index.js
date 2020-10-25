@@ -55,9 +55,7 @@ class Home extends React.Component {
 		});
 	}
 	
-	renderSearchResult() {
-		let searchResult = this.state.searchResult;
-		let resultItems = this.state.resultItems;
+	renderSearchResult(searchResult, resultItems) {
 		
 		if (resultItems.length <= 0) {
 			return (
@@ -84,19 +82,21 @@ class Home extends React.Component {
 		
 		return (
 			<div>
+				<h3>
+					Search Result
+				</h3>
 				<div className="grid">
-					{ this.renderPagination() }
+					{ this.renderPagination(searchResult) }
 				</div>
 				<div className="grid">
-					
 					{ resultCards }
 				</div>
+				{ this.renderReport(searchResult, resultItems) }
 			</div>
 		);
 	}
 	
-	renderPagination() {
-		let searchResult = this.state.searchResult;
+	renderPagination(searchResult) {
 		
 		let firstButton = searchResult.pagination['first'] ? <input type="button" id="first" value="First" onClick={this.gotoPage} /> : '';
 		let previousButton = searchResult.pagination['prev'] ? <input type="button" id="prev" value="Previous" onClick={this.gotoPage} /> : '';
@@ -113,7 +113,35 @@ class Home extends React.Component {
 		);
 	}
 	
+	renderReport(searchResult, resultItems) {
+		return (
+			<div>
+				<h3>
+					Search Report
+				</h3>
+				<div className="grid">
+					<p className="description">
+						Total repositories found: { searchResult.data.total_count }
+					</p>
+				</div>
+				<div className="grid">
+					<p className="description">
+						Raw data:
+					</p>
+				</div>
+				<div className="grid">
+					<p className="code">
+						<textarea cols={100} rows={40} defaultValue={ JSON.stringify(resultItems, null, 4) } />
+					</p>
+				</div>
+			</div>
+		);
+	}
+	
 	render() {
+		let searchResult = this.state.searchResult;
+		let resultItems = this.state.resultItems;
+		
 		return (
 			<div className="container">
 				<Head>
@@ -142,7 +170,7 @@ class Home extends React.Component {
 						</div>
 					</div>
 					
-					{ this.renderSearchResult() }
+					{ this.renderSearchResult(searchResult, resultItems) }
 				</div>
 
 				<div className="footer">
