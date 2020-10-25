@@ -5,15 +5,16 @@
 
 1. Clone or download the project
 
-1. Run `npm install` from the project directory:
+1. From the project directory, run the following command:
 ```cmd
 npm install
+npm run build
 ```
 
 ## Running the Application
 ---
 
-1. Run `npm run` from the project directory
+1. Run `npm run start`
 
 
 ## Unit Test
